@@ -3,10 +3,16 @@ from fastapi import FastAPI
 import logging
 from contextlib import asynccontextmanager
 from models import create_all
+from database import engine
+from sqlalchemy import text
+import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_all()
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT 1"))
+        print(result.scalar())
     yield
 
 app = FastAPI(
@@ -19,4 +25,12 @@ async def healthcheck():
         "status":200,
         "message": "I am healthy"
     }
+
+if __name__=="__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
 
