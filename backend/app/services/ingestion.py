@@ -3,9 +3,12 @@ import httpx
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 from models import SourceType , DocumentStatus, Document
-from chunker import chunk_text
-from embedder import embed_chunks
-from indexer import index_document
+from services.chunker import chunk_text
+from services.embedder import embed_chunks
+from services.indexer import index_document
+from database import get_db
+
+filepath = "services/sources/test_source.pdf"
 
 def extract_from_pdf(filepath: str) -> str:
     page_text_list =[] 
@@ -102,3 +105,13 @@ def ingest(source_type: str, source: str, db:Session) -> Document:
         db.refresh(document)
         raise Exception
 
+db = next(get_db())
+try:
+    doc = ingest(
+        source_type="pdf",
+        source=filepath,
+        db=db
+    )
+    print(f"Ingestion complete status: {doc.status}")
+finally:
+    db.close()

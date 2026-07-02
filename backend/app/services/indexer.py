@@ -2,7 +2,7 @@ from uuid import UUID
 from pinecone import Pinecone
 from sqlalchemy.orm import Session
 from config import settings
-from chunker import Chunk
+from models import Chunk
 
 #Pinecone client init
 pc = Pinecone(api_key=settings.pinecone_api_key)
@@ -44,7 +44,7 @@ def index_document(document_id: UUID, chunks: list[dict], db: Session) -> None:
         index.upsert(vectors=vectors)
 
         #Commit Postgress transaction
-        db.commit
+        db.commit()
     except Exception:
         db.rollback()
         raise

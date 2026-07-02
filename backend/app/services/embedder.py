@@ -1,6 +1,6 @@
 from openai import OpenAI
 from config import settings
-from chunker import Chunk
+from services.chunker import Chunk
 import logging
 
 logging.basicConfig(
@@ -23,7 +23,8 @@ def embed_chunks(chunks: list[Chunk]) -> list[dict]:
     try:
         embeddings = client.embeddings.create(
              input= content_list,
-             model="text-embedding-3-small"
+             model="text-embedding-3-small",
+             dimensions=512
         )
 
         for i, embedding in enumerate(embeddings.data):
