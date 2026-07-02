@@ -16,7 +16,7 @@ def chunk_text(text: str, document_id: uuid.UUID)-> list[Chunk]:
 
     texts: list[str] = text_spliiter.split_text(text)
 
-    for text_chunk in texts:
+    for text_chunk in enumerate(texts):
         if text_chunk == "":
             continue
         chunk = Chunk(

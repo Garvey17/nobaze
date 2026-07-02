@@ -7,7 +7,7 @@ from models import Chunk
 #Pinecone client init
 pc = Pinecone(api_key=settings.pinecone_api_key)
 
-index = pc.index(settings.pinecone_index_name)
+index = pc.Index(settings.pinecone_index_name)
 
 def index_document(document_id: UUID, chunks: list[dict], db: Session) -> None:
     try:

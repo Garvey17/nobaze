@@ -53,16 +53,16 @@ def extract_from_text(raw_text: str) -> str:
     """
     A passthrough fuction that validates that the text passed is a non-empty string and then return it
     """
-    if raw_text != "":
-        return raw_text
+    if not raw_text.strip():
+        raise ValueError('Empty string passed to the text extractor')
     else:
-        return "<Empty string passed>"
+        return raw_text
     
 
 
 def ingest(source_type: str, source: str, db:Session) -> Document:
 
-    #creatind document row in postgress
+    #creating document row in postgress
     document = Document(
         source_type=SourceType(source_type),
         source_name=source,
@@ -99,19 +99,22 @@ def ingest(source_type: str, source: str, db:Session) -> Document:
         document.status = DocumentStatus.COMPLETE
         db.commit()
         db.refresh(document)
+        return document
     except Exception:
         document.status = DocumentStatus.FAILED
         db.commit()
         db.refresh(document)
-        raise Exception
+        raise 
 
-db = next(get_db())
-try:
-    doc = ingest(
-        source_type="pdf",
-        source=filepath,
-        db=db
-    )
-    print(f"Ingestion complete status: {doc.status}")
-finally:
-    db.close()
+if __name__ == "__main__":
+
+    db = next(get_db())
+    try:
+        doc = ingest(
+            source_type="pdf",
+            source=filepath,
+            db=db
+        )
+        print(f"Ingestion complete status: {doc.status}")
+    finally:
+        db.close()
