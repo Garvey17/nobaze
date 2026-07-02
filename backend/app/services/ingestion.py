@@ -1,6 +1,11 @@
 import fitz
 import httpx
 from bs4 import BeautifulSoup
+from sqlalchemy.orm import Session
+from models import SourceType , DocumentStatus, Document
+from chunker import chunk_text
+from embedder import embed_chunks
+from indexer import index_document
 
 def extract_from_pdf(filepath: str) -> str:
     page_text_list =[] 
@@ -52,5 +57,48 @@ def extract_from_text(raw_text: str) -> str:
     
 
 
+def ingest(source_type: str, source: str, db:Session) -> Document:
 
+    #creatind document row in postgress
+    document = Document(
+        source_type=SourceType(source_type),
+        source_name=source,
+        status = DocumentStatus.PENDING
+    )
+
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    try:
+
+        #Processing
+        document.status = DocumentStatus.PROCESSING
+        db.commit()
+        db.refresh(document)
+
+        #extract text
+        if source_type == SourceType.PDF.value:
+            text = extract_from_pdf(source)
+        elif source_type == SourceType.URL.value:
+            text = extract_from_url(source)
+        elif source_type == SourceType.TEXT.value:
+            text = extract_from_text(source)
+        else:
+            raise ValueError(f"Unsupported source type: {source_type}")
+        
+        chunks = chunk_text(text, document_id=document.id)
+
+        chunks_with_embeddings = embed_chunks(chunks)
+
+        index_document(document.id, chunks_with_embeddings, db)
+
+        document.status = DocumentStatus.COMPLETE
+        db.commit()
+        db.refresh(document)
+    except Exception:
+        document.status = DocumentStatus.FAILED
+        db.commit()
+        db.refresh(document)
+        raise Exception
 
