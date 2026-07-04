@@ -3,6 +3,9 @@ from config import settings
 from openai import OpenAI
 from rank_bm25 import BM25Okapi
 from services.bm25_store import tokenize
+from sqlalchemy.orm import Session
+from services.bm25_store import build_corpus
+from database import get_db
 
 
 open_client = OpenAI(
@@ -26,7 +29,7 @@ def semantic_search(query: str, top_k: int = 20) -> list[dict]:
     #search for the user query via its embeddings on the pinecone vector store based on similarity
 
     search_result = index.query(
-        vector=embedded_query,
+        vector=embedded_query.data[0].embedding,
         top_k= top_k,
         include_metadata=True
     )
@@ -35,11 +38,11 @@ def semantic_search(query: str, top_k: int = 20) -> list[dict]:
         {
             "chunk_id":result.id,
             "score": result.score,
-            "document_id": result.metadata.document_id,
-            "chunk_index": result.metadata.chunk_index,
-            "content": result.metadata.content,
+            "document_id": result.metadata["document_id"],
+            "chunk_index": result.metadata["chunk_index"],
+            "content": result.metadata["content"],
         }
-        for result in search_result
+        for result in search_result.matches
     ]
 
     return chunks_from_result
@@ -121,3 +124,34 @@ def reciprocal_rank_fusion(
         results.append(chunk)
     
     return results
+
+#orchestration function
+
+def search(query: str, db: Session, top_k: int = 5) -> list[dict]:
+    """
+    Orchestration function responsible for wiring search operations together
+    """
+
+    #build corpus
+    bm25, corpus = build_corpus(db)
+
+    #semantic search operation
+    semantic_results = semantic_search(query, top_k=20)
+
+    #keyword search operation with bm25
+    bm25_results = bm25_search(query, bm25, corpus, top_k=20)
+
+    #reciprocal rank fusion
+    rrf_results = reciprocal_rank_fusion(semantic_results, bm25_results, top_k=top_k)
+
+    return rrf_results
+
+
+if __name__ == "__main__":
+    db = next(get_db())
+    try:
+        results = search("Test question", db)
+        for  r in results:
+            print(r["chunk_id"], r["rrf_score"], r["content"][:100])
+    finally:
+        db.close()

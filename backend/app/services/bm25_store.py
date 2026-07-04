@@ -9,7 +9,7 @@ def tokenize(text: str) -> list[str]:
     """
     return text.lower().split()
 
-def build_corpus(db: Session) -> tuple[BM25Okapi, list[dict[str]]]:
+def build_corpus(db: Session) -> tuple[BM25Okapi, list[dict]]:
      """
     Build an in-memory BM25 index from every chunk in Postgres.
 
@@ -41,5 +41,5 @@ def build_corpus(db: Session) -> tuple[BM25Okapi, list[dict[str]]]:
 
      bm25 = BM25Okapi(tokenized_corpus)
      # the return values are the BM@)OKapi object which gives us access to the get_score method that returns a numpy array of scores with index corresponding to the index chunk in the chunks list which is why we are also returning the chunks list: this enables me to map the chunk to the score by index 
-     
+
      return bm25, chunks
