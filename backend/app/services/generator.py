@@ -100,6 +100,26 @@ def answer(query: str, db: Session) -> dict:
 
     return result
 
+def generate_streaming(query: str, chunks: list[dict]):
+    """
+    Generator function that yields text chunks as gpt strams them
+    """
+
+    messages = build_prompt(query, chunks)
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=messages,
+        stream=True
+    )
+
+    for chunk in response:
+        token = chunk.choices[0].delta.content
+        if token:
+            yield token
+
+
+
 if __name__ == "__main__":
     from database import get_db
 
@@ -112,3 +132,5 @@ if __name__ == "__main__":
             print(f"[{i}] {source['content'][:120]}")
     finally:
         db.close() 
+
+
