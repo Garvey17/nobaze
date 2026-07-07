@@ -34,11 +34,6 @@ def local_stt() -> bytes:
 
     return audio_bytes
 
-        #Recognise speech and return text
-
-        # text = r.recognize_tensorflow(audio)
-
-        # return text
 
     
 
@@ -51,7 +46,7 @@ def transcribe(audio_bytes: bytes, mime_type: str = "audio/wav") -> str:
     audio_file = io.BytesIO(audio_bytes)
     audio_file.name = "audio.wav"
 
-    print(*"Processing Audio....")
+    print("Processing Audio....")
     transcript = client.audio.transcriptions.create(
         model="whisper-1",
         file=audio_file
