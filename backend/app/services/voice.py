@@ -1,28 +1,63 @@
 import io
 from openai import OpenAI
+from openai import AsyncOpenAI
 from config import settings
 from collections.abc import Generator
 from sqlalchemy.orm import Session
 from services.searcher import search
 from services.generator import generate_streaming
+import speech_recognition as sr
+from openai.helpers import LocalAudioPlayer
 
 client = OpenAI(
     api_key=settings.openai_api_key
 )
 
-def transcribe(audio_bytes: bytes, mime_type: str = "audio/webm") -> str:
+async_client = AsyncOpenAI(
+    api_key=settings.openai_api_key
+)
+
+def local_stt() -> bytes:
+    """
+    initiates google speech to text worker that takes input audio from local microphone and returns text
+    """
+
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        r.adjust_for_ambient_noise(source)
+        r.pause_threshold = 2
+
+        print("Ask a question 🎤 ...")
+        audio =  r.listen(source)
+
+    audio_bytes = audio.get_wav_data()
+
+    return audio_bytes
+
+        #Recognise speech and return text
+
+        # text = r.recognize_tensorflow(audio)
+
+        # return text
+
+    
+
+
+def transcribe(audio_bytes: bytes, mime_type: str = "audio/wav") -> str:
     """
     Transcribe audio to text using openAI Whisper
     """
 
     audio_file = io.BytesIO(audio_bytes)
-    audio_file.name = "audio.webm"
+    audio_file.name = "audio.wav"
 
+    print(*"Processing Audio....")
     transcript = client.audio.transcriptions.create(
         model="whisper-1",
         file=audio_file
     )
 
+    print(transcript.text)
     return transcript.text
 
 import re
@@ -83,18 +118,31 @@ def voice_answer(audio_bytes: bytes, db: Session) -> Generator[bytes, None, None
 
 
 if __name__ == "__main__":
+    import pygame
     from database import get_db
-    
+
     db = next(get_db())
-    
-    with open("test_question.m4a", "rb") as f:
-        audio_bytes = f.read()
-    
-    output = b""
-    for audio_chunk in voice_answer(audio_bytes, db):
-        output += audio_chunk
-    
-    with open("answer.mp3", "wb") as f:
-        f.write(output)
-    
-    print("Done — play answer.mp3")
+
+    try:
+        audio_bytes = local_stt()
+
+        audio_buffer = b""
+
+        for audio_chunk in voice_answer(audio_bytes, db):
+            print(".", end="", flush=True)
+            audio_buffer += audio_chunk
+
+        with open("answer.mp3", "wb") as f:
+            f.write(audio_buffer)
+
+        print("\nPlaying response...")
+
+        pygame.mixer.init()
+        pygame.mixer.music.load("answer.mp3")
+        pygame.mixer.music.play()
+
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+        
+    finally:
+        db.close()
