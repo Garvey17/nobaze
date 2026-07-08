@@ -6,6 +6,7 @@ from models import create_all
 from database import engine
 from sqlalchemy import text
 import uvicorn
+from app.routers import ingest, query, voice, documents
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +26,11 @@ async def healthcheck():
         "status":200,
         "message": "I am healthy"
     }
+
+app.include_router(ingest.router, prefix="/api/v1")
+app.include_router(query.router, prefix="/api/v1")
+app.include_router(voice.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")
 
 if __name__=="__main__":
     uvicorn.run(
