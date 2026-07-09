@@ -19,8 +19,8 @@ async def query_knowledge_base(request : QueryRequest, db: Session = Depends(get
             answer=query_answer["answer"],
             sources=[
                 SourceChunk(
-                    chunk_id=chunk["id"],
-                    document_id=chunk["document_id"],
+                    chunk_id=str(chunk["chunk_id"]),
+                    document_id=str(chunk["document_id"]),
                     chunk_index=chunk["chunk_index"],
                     content=chunk["content"],
                     rrf_score=chunk["rrf_score"]
