@@ -94,6 +94,8 @@ def ingest(source_type: str, source: str, db:Session) -> Document:
 
         chunks_with_embeddings = embed_chunks(chunks)
 
+
+        #Indexing process 
         index_document(document.id, chunks_with_embeddings, db)
 
         document.status = DocumentStatus.COMPLETE

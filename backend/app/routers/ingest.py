@@ -17,7 +17,7 @@ async def ingest_document(
         document = ingest(request.source_type, request.source, db)
 
         return IngestResponse(
-            document_id=document.id,
+            document_id=str(document.id),
             source_name=document.source_name,
             status=document.status,
         )

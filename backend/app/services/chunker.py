@@ -16,13 +16,13 @@ def chunk_text(text: str, document_id: uuid.UUID)-> list[Chunk]:
 
     texts: list[str] = text_spliiter.split_text(text)
 
-    for text_chunk in enumerate(texts):
+    for i, text_chunk in enumerate(texts):
         if text_chunk == "":
             continue
         chunk = Chunk(
             document_id=document_id,
             content=text_chunk,
-            chunk_index=texts.index(text_chunk),
+            chunk_index=i,
             token_count=len(text_chunk.split())
         )
         chunks.append(chunk)
