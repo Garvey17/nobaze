@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Depends
-from app.services.voice import voice_answer
+from services.voice import voice_answer
 from database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import StreamingResponse

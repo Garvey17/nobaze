@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas import QueryRequest, QueryResponse, SourceChunk
-from app.services.generator import answer
+from schemas import QueryRequest, QueryResponse, SourceChunk
+from services.generator import answer
 from database import get_db
 
 router = APIRouter(tags=["query"])
