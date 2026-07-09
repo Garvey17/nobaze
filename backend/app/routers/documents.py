@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
-from app.schemas import DocumentResponse
+from schemas import DocumentResponse
 from sqlalchemy.orm import Session
 from models import Document
 import logging

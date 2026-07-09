@@ -6,7 +6,7 @@ from models import create_all
 from database import engine
 from sqlalchemy import text
 import uvicorn
-from app.routers import ingest, query, voice, documents
+from routers import ingest, query, voice, documents
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

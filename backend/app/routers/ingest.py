@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.schemas import IngestRequest, IngestResponse
+from schemas import IngestRequest, IngestResponse
 
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.services.ingestion import ingest
+from database import get_db
+from services.ingestion import ingest
 
 router = APIRouter(tags=["ingestion"])
 
