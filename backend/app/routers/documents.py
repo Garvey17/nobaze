@@ -38,26 +38,29 @@ async def list_documents(db: Session = Depends(get_db)):
         )
     
 
-@router.delete('/documents/{document_id}', status_code=204)
-async def delete_document(document_id: str, db: Session = Depends(get_db)):
-    try:
-        document = db.query(Document).filter_by(id==document_id).first()
+@router.delete('/documents', status_code=204)
+async def delete_documents(document_ids: list[str], db: Session = Depends(get_db)):
 
-        if not document:
-            logger.warning('Document does not exist')
-            raise HTTPException(
-                status_code=404,
-                detail="Document not found"
-            )
+    for document_id in document_ids:
 
-        db.delete(document)
-        db.commit()
-        logger.info(f'Delete operation successfully carried out on document with id:{document_id}')
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f'Something went wrong while trying to delete: {e}')
-        raise HTTPException(status_code=500, detail=str(e))
+        try:
+            document = db.query(Document).filter_by(id=document_id).first()
+
+            if not document:
+                logger.warning('Document does not exist')
+                raise HTTPException(
+                    status_code=404,
+                    detail="Document not found"
+                )
+
+            db.delete(document)
+            db.commit()
+            logger.info(f'Delete operation successfully carried out on document with id:{document_id}')
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f'Something went wrong while trying to delete: {e}')
+            raise HTTPException(status_code=500, detail=str(e))
 
 
 
