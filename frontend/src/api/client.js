@@ -1,4 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://54.235.26.154:8000';
+// On Vercel: VITE_API_BASE_URL is not set so BASE_URL = '' — all fetches use
+// relative paths (e.g. /api/v1/query) which vercel.json rewrites to the EC2 backend.
+// In local dev: .env sets VITE_API_BASE_URL=http://54.235.26.154:8000 so it hits EC2 directly.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 async function handleResponse(response) {
   if (!response.ok) {
