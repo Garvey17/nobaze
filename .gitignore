@@ -79,3 +79,7 @@ temp/
 secrets.json
 credentials.json
 config.local.json
+
+#Deployment update
+infra/
+*.sh
